@@ -85,7 +85,7 @@ export default function LandingPage() {
                   {item.icon}
                 </div>
                 <h3 className="font-semibold text-xl">{item.title}</h3>
-                <p className="text-muted-foreground">{item.description}</p>
+                <p className="text-muted-foreground text-pretty">{item.description}</p>
               </div>
             ))}
           </div>

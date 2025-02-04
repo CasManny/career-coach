@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  clerkUserId String @unique
+  email String @unique
+  name String?
+  imageUrl String?
+  industry String? @unique
+
+  industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
+
+  bio String?
+  experience Int?
+  skills String[]
+
+  assessments Assessments[]
+  resume Resume?
+  coverLetter CoverLetter[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model IndustryInsight {
+  id String @id @default(uuid())
+  industry String @unique
+  users User[]
+
+  salaryRanges Json[]
+
+  marketOutlook MarketOutlook
+  keyTrends String[]
+  
+
+  recommendedSkills String[]
+
+  growthRate Float
+  demandLevel DemandLevel
+  topSkills String[]
+
+  lastUpdated DateTime @default(now())
+  nextUpdate DateTime
+
+
+
+  @@index([industry])
+ 
+}
+
+model Assessments {
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields: [userId], references: [id])
+  quizScore Float
+  questions Json[]
+  category String
+  improvementTips String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum DemandLevel {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum MarketOutlook {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+model Resume {
+  id String @id @default(uuid())
+  user User @relation(fields: [userId], references: [id])
+  userId String @unique
+  content String @db.Text
+  feedback String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CoverLetter {
+  id String @id @default(uuid())
+  user User @relation(fields: [userId], references: [id])
+  userId String @unique
+  content String?
+  jobDescription String?
+  companyName String
+  jobTitle String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
