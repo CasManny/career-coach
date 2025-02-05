@@ -20,7 +20,6 @@ model User {
   name String?
   imageUrl String?
   industry String? @unique
-
   industryInsight IndustryInsight? @relation(fields: [industry], references: [industry])
 
   bio String?
