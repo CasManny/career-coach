@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import React from 'react'
 
 const IndustryInsightspage = async () => {
-    const { success } = await getUserOnboardingStatus()
+  const { success } = await getUserOnboardingStatus()
     if (!success) {
         redirect('/onboarding')
     }

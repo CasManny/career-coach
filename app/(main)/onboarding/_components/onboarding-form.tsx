@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -31,6 +31,11 @@ import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { onboardingSchema } from "@/lib/schemas";
 import { Textarea } from "@/components/ui/textarea";
+import useFetch from "@/hooks/use-fetch";
+import { updateUser } from "@/actions/user";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Industry {
   id: string;
@@ -39,6 +44,12 @@ interface Industry {
 }
 
 export default function IndustryForm() {
+  const router = useRouter();
+  const {
+    loading: updateLoading,
+    fn: updateUserFn,
+    data: updateResult,
+  } = useFetch(updateUser);
   const form = useForm<z.infer<typeof onboardingSchema>>({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
@@ -57,12 +68,33 @@ export default function IndustryForm() {
   const handleIndustryChange = (value: string) => {
     const industry = industries.find((ind) => ind.id === value) ?? null;
     setSelectedIndustry(industry);
-    form.setValue("subIndustry", ""); // Reset subIndustry when changing industry
+    form.setValue("subIndustry", "");
   };
 
-  const onSubmit = (data: z.infer<typeof onboardingSchema>) => {
-    console.log(data);
+  const onSubmit = async (values: z.infer<typeof onboardingSchema>) => {
+    try {
+      const formattedIndustry = `${values.industry}-${values.subIndustry
+        .toLowerCase()
+        .replace(/ /g, "-")}`;
+
+      await updateUserFn({
+        ...values,
+        industry: formattedIndustry,
+      });
+      router.push('/dashboard')
+      router.refresh()
+    } catch (error) {
+      console.log("onboarding error", error);
+    }
   };
+
+  // useEffect(() => {
+  //   if (updateResult?.success && !updateLoading) {
+  //     toast.success("Profile completed successfully!");
+  //     router.push("/dashboard");
+  //     router.refresh();
+  //   }
+  // }, [updateResult, updateLoading])
 
   return (
     <div className="flex items-center justify-center bg-background">
@@ -109,87 +141,91 @@ export default function IndustryForm() {
                 )}
               />
 
-              {selectedIndustry && (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="subIndustry"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sub-Industry</FormLabel>
-                        <Select onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a sub-industry" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {selectedIndustry.subIndustries.map((sub) => (
-                              <SelectItem key={sub} value={sub}>
-                                {sub}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="experience"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Years of experience</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="How many years of experience do you have?"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Bio</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Tell us about yourself"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="skills"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Skills</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Input your skill set"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Skills should be seperated using commas
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
+              <FormField
+                control={form.control}
+                name="subIndustry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sub-Industry</FormLabel>
+                    <Select onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a sub-industry" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {selectedIndustry?.subIndustries.map((sub) => (
+                          <SelectItem key={sub} value={sub}>
+                            {sub}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="experience"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Years of experience</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="How many years of experience do you have?"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bio</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Tell us about yourself"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="skills"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Skills</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Input your skill set" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Skills should be seperated using commas
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <Button type="submit" className="w-full">Submit</Button>
+              <Button type="submit" className="w-full" disabled={updateLoading}>
+                {updateLoading ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "complete profile"
+                )}
+              </Button>
             </form>
           </Form>
         </CardContent>
