@@ -4,42 +4,35 @@ import prisma from "@/lib/prisma";
 import { onboardingSchema } from "@/lib/schemas";
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
+import { generateAIInsight } from "./dashboard";
 type OnboardingStatusResponse = { success: boolean; message: string };
 
-
 export const updateUser = async (data: z.infer<typeof onboardingSchema>) => {
-  const { userId } = await auth();
-  console.log(userId);
-  if (!userId) {
-    return { success: false, message: "Unauthorized user" };
-  }
-  const user = await prisma.user.findUnique({
-    where: {
-      clerkUserId: userId,
-    },
-  });
-  if (!user) {
-    return { success: false, message: "User not found" };
-  }
-
   try {
-    let industryInsights = await prisma.industryInsight.findUnique({
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, message: "Unauthorized user" };
+    }
+    const user = await prisma.user.findUnique({
+      where: {
+        clerkUserId: userId,
+      },
+    });
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+    let industryInsight = await prisma.industryInsight.findUnique({
       where: {
         industry: data.industry,
       },
     });
 
-    if (!industryInsights) {
-      industryInsights = await prisma.industryInsight.create({
+    if (!industryInsight) {
+      const insights = await generateAIInsight(data.industry);
+      industryInsight = await prisma.industryInsight.create({
         data: {
           industry: data.industry,
-          salaryRanges: [],
-          growthRate: 0,
-          demandLevel: "MEDIUM",
-          topSkills: [],
-          marketOutlook: "NEUTRAL",
-          keyTrends: [],
-          recommendedSkills: [],
+          ...insights,
           nextUpdate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         },
       });
@@ -62,6 +55,7 @@ export const updateUser = async (data: z.infer<typeof onboardingSchema>) => {
     return { success: false, message: "Internal server error" };
   }
 };
+
 
 
 export const getUserOnboardingStatus =

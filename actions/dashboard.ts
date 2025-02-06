@@ -1,5 +1,7 @@
 "use server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { authenticateUser } from "@/lib/authenticate-user";
+import prisma from "@/lib/prisma";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
@@ -12,9 +14,9 @@ export const generateAIInsight = async (industry: string) => {
         { "role": "string", "min": number, "max": number, "median": number, "location": "string" }
       ],
       "growthRate": number,
-      "demandLevel": "High" | "Medium" | "Low",
+      "demandLevel": "HIGH" | "MEDIUM" | "LOW",
       "topSkills": ["skill1", "skill2"],
-      "marketOutlook": "Positive" | "Neutral" | "Negative",
+      "marketOutlook": "POSITIVE" | "NEUTRAL" | "NEGATIVE",
       "keyTrends": ["trend1", "trend2"],
       "recommendedSkills": ["skill1", "skill2"]
     }
@@ -30,8 +32,7 @@ export const generateAIInsight = async (industry: string) => {
   return JSON.parse(cleanedText);
 };
 
-import { authenticateUser } from "@/lib/authenticate-user";
-import prisma from "@/lib/prisma";
+
 
 export const getIndustryInsights = async () => {
   const user = await authenticateUser();
@@ -53,3 +54,7 @@ export const getIndustryInsights = async () => {
 
   return user.industryInsight;
 };
+
+export type IndustryInsightType = Awaited<ReturnType<typeof getIndustryInsights>>;
+
+

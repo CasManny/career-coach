@@ -11,7 +11,7 @@ export const authenticateUser = async () => {
         where: {
             clerkUserId: userId
         },
-        select: {
+        include: {
             industryInsight: true
         }
     })

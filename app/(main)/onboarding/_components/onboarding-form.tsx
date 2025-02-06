@@ -81,8 +81,9 @@ export default function IndustryForm() {
         ...values,
         industry: formattedIndustry,
       });
-      router.push('/dashboard')
-      router.refresh()
+
+      router.push("/dashboard");
+      router.refresh();
     } catch (error) {
       console.log("onboarding error", error);
     }
