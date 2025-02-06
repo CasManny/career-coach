@@ -4,7 +4,7 @@ import { authenticateUser } from "@/lib/authenticate-user";
 import prisma from "@/lib/prisma";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+export const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 export const generateAIInsight = async (industry: string) => {
   const prompt = `

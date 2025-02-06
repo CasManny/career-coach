@@ -3,12 +3,18 @@ import { getUserOnboardingStatus } from "@/actions/user";
 import { redirect } from "next/navigation";
 import React from "react";
 import DashboardView from "./_components/dashboard-view";
+import { auth } from "@clerk/nextjs/server";
 
 const IndustryInsightspage = async () => {
   const { success } = await getUserOnboardingStatus();
+  const user = await auth();
+  if (!user) {
+    redirect("/sign-in");
+  }
   if (!success) {
     redirect("/onboarding");
   }
+
   const insights = await getIndustryInsights();
   return (
     <div className="container mx-auto">
