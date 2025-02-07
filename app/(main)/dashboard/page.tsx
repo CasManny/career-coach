@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import React from "react";
 import DashboardView from "./_components/dashboard-view";
 import { auth } from "@clerk/nextjs/server";
-import { DashboardSkeleton } from "./_components/dashboard-skeleton";
 
 const IndustryInsightspage = async () => {
   const user = await auth();
@@ -17,9 +16,6 @@ const IndustryInsightspage = async () => {
   }
 
   const insights = await getIndustryInsights();
-  if (!insights) {
-    return <DashboardSkeleton />
-  }
   return (
     <div className="container mx-auto">
       <DashboardView

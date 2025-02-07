@@ -43,8 +43,8 @@ interface DashboardViewProps {
   nextUpdate: Date;
   growthRate: number;
   topSkills: string[];
-  keyTrends: string[];
-  recommendedSkills: string[];
+    keyTrends: string[];
+    recommendedSkills: string[]
 }
 
 const DashboardView = ({
@@ -55,8 +55,8 @@ const DashboardView = ({
   nextUpdate,
   growthRate,
   topSkills,
-  keyTrends,
-  recommendedSkills,
+    keyTrends,
+  recommendedSkills
 }: DashboardViewProps) => {
   const salaryData = salaryRanges?.map((range) => ({
     name: range.role,
