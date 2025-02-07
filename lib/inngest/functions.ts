@@ -1,4 +1,4 @@
-import { model } from "@/actions/dashboard";
+import { model } from "../geminiAI";
 import prisma from "../prisma";
 import { inngest } from "./client";
 
@@ -43,10 +43,37 @@ export const generateIndustryInsights = inngest.createFunction(
         prompt
       );
 
-      const text = res.response?.candidates?.[0].content?.parts?.[0].text || "";
+      // Log response for debugging
+      console.log("AI Response:", JSON.stringify(res, null, 2));
+
+      // Extracting the first candidate safely
+      const candidate = res?.response?.candidates?.[0];
+
+      // Extract text from different possible structures
+      let text = "";
+      if (candidate?.content?.parts) {
+        for (const part of candidate.content.parts) {
+          if ("text" in part) {
+            text += part.text; // Concatenating in case there are multiple parts
+          }
+        }
+      }
+
+      if (!text) {
+        console.error(`No valid text response for industry: ${industry}`);
+        continue;
+      }
+
       const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
-      const insights = JSON.parse(cleanedText);
+      let insights;
+      try {
+        insights = JSON.parse(cleanedText);
+      } catch (error) {
+        console.error(`JSON parsing error for industry: ${industry}`, error, cleanedText);
+        continue;
+      }
+
       await step.run(`Update ${industry} insights`, async () => {
         await prisma.industryInsight.update({
           where: { industry },

@@ -31,5 +31,6 @@ export const checkUser = async () => {
 
     } catch (error) {
         console.log("Error in checking user", error) 
+        return { message: "No user found"}
     }
 }
