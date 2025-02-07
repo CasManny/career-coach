@@ -14,6 +14,7 @@ import useFetch from "@/hooks/use-fetch";
 import React, { useEffect, useState } from "react";
 import { BarLoader } from "react-spinners";
 import { toast } from "sonner";
+import QuizResult from "./quiz-result";
 
 type QuizQuestion = {
   question: string;
@@ -55,11 +56,13 @@ export const Quiz = () => {
   };
 
   const handleNext = () => {
-    setShowExplanation(false);
-    setCurrentQuestion((prev) => prev + 1);
     if (currentQuestion >= (quizData?.length || 0) - 1) {
       finishQuiz();
+      return; // Prevent further execution
     }
+  
+    setShowExplanation(false);
+    setCurrentQuestion((prev) => prev + 1);
   };
 
   const calculateScore = (): number => {
@@ -69,9 +72,9 @@ export const Quiz = () => {
         answer === quizData[index].correctAnswer ? acc + 1 : acc,
       0
     );
-
     return (correct / quizData.length) * 100;
   };
+
 
   const finishQuiz = async () => {
     if (!quizData) return;
@@ -118,8 +121,16 @@ export const Quiz = () => {
       </Card>
     );
   }
+    
+  if (resultData) {
+    return (
+      <div className="mx-2">
+        <QuizResult result={resultData}  onStartNew={startNewQuiz} />
+      </div>
+    );
+  }
 
-  const question = quizData[currentQuestion];
+  const question = quizData[currentQuestion] || null;
 
   return (
     <Card className="mx-2">
@@ -129,13 +140,13 @@ export const Quiz = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-lg font-medium">{question.question}</p>
+        <p className="text-lg font-medium">{question?.question}</p>
         <RadioGroup
           onValueChange={handleAnswer}
           value={answers[currentQuestion] || ""}
           className="space-y-2"
         >
-          {question.options.map((option, index) => (
+          {question?.options?.map((option, index) => (
             <div key={index} className="flex items-center space-x-2">
               <RadioGroupItem value={option} id={`option-${index}`} />
               <Label htmlFor={`option-${index}`}>{option}</Label>
@@ -146,7 +157,7 @@ export const Quiz = () => {
         {showExplanation && (
           <div className="mt-4 p-4 bg-muted rounded-lg">
             <p className="font-medium">Explanation:</p>
-            <p className="text-muted-foreground">{question.explanation}</p>
+            <p className="text-muted-foreground">{question?.explanation}</p>
           </div>
         )}
       </CardContent>

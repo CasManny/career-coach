@@ -3,6 +3,7 @@
 import { authenticateUser } from "@/lib/authenticate-user";
 import { model } from "@/lib/geminiAI";
 import prisma from "@/lib/prisma";
+import { Assessments as AssessmentType } from "@prisma/client";
 
 type QuizQuestion = {
   question: string;
@@ -25,11 +26,11 @@ type QuestionResult = {
   explanation: string;
 };
 
-type Assessment = {
-  userId: string;
+export type Assessment = {
+  userId?: string;
   quizScore: number;
   questions: QuestionResult[];
-  category: string;
+  category?: string;
   improvementTip?: string | null;
 };
 
@@ -131,6 +132,32 @@ export async function saveQuizResult(
     console.error("Error saving quiz result:", error);
     throw new Error("Failed to save quiz result");
   }
+}
+
+export const getAssessments = async () => {
+  const user = await authenticateUser()
+  try {
+    const assessments = await prisma.assessments.findMany({
+      where: {
+        userId: user.id
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      select: {
+        questions: true,
+        quizScore: true,
+        createdAt: true,
+        id: true,
+        improvementTips: true
+      }
+    })
+
+    return JSON.parse(JSON.stringify(assessments))
+  } catch (error) {
+    console.log("Error fetching assessments", error)
+  }
+
 }
 
 
